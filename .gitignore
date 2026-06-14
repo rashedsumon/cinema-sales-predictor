@@ -1,0 +1,11 @@
+# Python caches
+__pycache__/
+*.pyc
+
+# Local Kaggle cache and data downloads
+.kagglehub/
+*.csv
+
+# Operating system files
+.DS_Store
+Thumbs.db
