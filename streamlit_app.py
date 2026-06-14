@@ -23,7 +23,7 @@ def get_trained_model():
 # Initialize model pipeline
 try:
     model, feature_names, metrics = get_trained_model()
-    st.success("🤖 AI Model loaded and ready!")
+   
 except Exception as e:
     st.error(f"Failed to load dataset/model. Error: {e}")
     st.stop()
