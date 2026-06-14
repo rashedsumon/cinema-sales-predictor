@@ -31,11 +31,7 @@ except Exception as e:
 # Layout: Split into sidebar metrics and main prediction engine
 col1, col2 = st.columns([1, 2])
 
-with col1:
-    st.header("📈 Model Performance Metrics")
-    st.metric(label="R² Accuracy Score", value=f"{metrics['R2']:.2f}")
-    st.metric(label="Mean Absolute Error (MAE)", value=f"{metrics['MAE']:.1f} tickets")
-    st.caption("Historical performance measured against the test split.")
+
 
 with col2:
     st.header("🔮 Predict New Screening Sales")
