@@ -29,7 +29,7 @@ except Exception as e:
     st.stop()
 
 # Layout: Split into sidebar metrics and main prediction engine
-
+col1, col2 = st.columns([1, 2])
 
 
 
