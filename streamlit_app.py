@@ -7,7 +7,7 @@ from model import preprocess_and_train
 st.set_page_config(
     page_title="Cinema Ticket Predictor",
     page_icon="🎬",
-    layout="wide"
+    layout="centered"  # Changed to centered for a clean 1-column layout
 )
 
 st.title("🎬 AI Cinema Ticket Sales Predictor")
@@ -23,64 +23,68 @@ def get_trained_model():
 # Initialize model pipeline
 try:
     model, feature_names, metrics = get_trained_model()
-    
+    st.success("🤖 AI Model loaded and ready!")
 except Exception as e:
     st.error(f"Failed to load dataset/model. Error: {e}")
     st.stop()
 
-# Layout: Split into sidebar metrics and main prediction engine
-col1, col2 = st.columns([1, 2])
+# --- SECTION 1: Performance Metrics (Full Width Top) ---
+st.markdown("---")
+st.header("📈 Model Performance Metrics")
+metric_cols = st.columns(2)
+with metric_cols[0]:
+    st.metric(label="R² Accuracy Score", value=f"{metrics['R2']:.2f}")
+with metric_cols[1]:
+    st.metric(label="Mean Absolute Error (MAE)", value=f"{metrics['MAE']:.1f} tickets")
+st.caption("Historical performance measured against the test split.")
 
+# --- SECTION 2: Predict New Screening Sales (Full Width Main Column) ---
+st.markdown("---")
+st.header("🔮 Predict New Screening Sales")
+st.write("Adjust the features of your upcoming screening below to get a real-time sales forecast:")
 
-
-with col2:
-    st.header("🔮 Predict New Screening Sales")
-    st.write("Adjust the features of your upcoming screening below to get a real-time sales forecast:")
-    
-    # We build input widgets dynamically based on the dataset features
-    # Standard columns in this dataset typically include: ticket_price, capacity, cinema_code, month, day, etc.
+# Wrap input features inside a unified Streamlit Form for clean submission
+with st.form("prediction_form"):
     input_data = {}
     
-    # Create columns inside the prediction panel for a clean layout
-    ui_cols = st.columns(2)
-    
-    for i, feature in enumerate(feature_names):
-        # Alternate inputs across the 2 UI columns
-        with ui_cols[i % 2]:
-            # Customize controls based on common dataset features
-            if 'price' in feature.lower():
-                input_data[feature] = st.slider(f"Ticket Price (Normalized/Value)", 0.0, 100.0, 15.0)
-            elif 'capacity' in feature.lower():
-                input_data[feature] = st.slider(f"Theater Capacity", 10, 500, 150)
-            elif 'month' in feature.lower():
-                input_data[feature] = st.selectbox(f"Month Number", list(range(1, 13)), index=5)
-            elif 'day' in feature.lower():
-                input_data[feature] = st.selectbox(f"Day of Month", list(range(1, 32)), index=14)
-            else:
-                # Fallback slider for remaining numerical/encoded ID columns (like cinema_code, film_code)
-                input_data[feature] = st.number_input(f"{feature}", value=1.0, step=1.0)
+    # We loop through the required features sequentially in 1 clean column
+    for feature in feature_names:
+        # Customize controls based on common dataset features
+        if 'price' in feature.lower():
+            input_data[feature] = st.slider(f"💵 Ticket Price (Normalized/Value)", 0.0, 100.0, 15.0)
+        elif 'capacity' in feature.lower():
+            input_data[feature] = st.slider(f"🪑 Theater Capacity", 10, 500, 150)
+        elif 'month' in feature.lower():
+            input_data[feature] = st.selectbox(f"📅 Month Number", list(range(1, 13)), index=5)
+        elif 'day' in feature.lower():
+            input_data[feature] = st.selectbox(f"📆 Day of Month", list(range(1, 32)), index=14)
+        else:
+            # Fallback for remaining numerical/encoded ID columns (like cinema_code, film_code)
+            input_data[feature] = st.number_input(f"🔢 {feature}", value=1.0, step=1.0)
+            
+    # Form submission button
+    submit_button = st.form_submit_button("Calculate Expected Ticket Sales", type="primary")
 
-    # Trigger Prediction
-    if st.button("Calculate Expected Ticket Sales", type="primary"):
-        # Convert user inputs into a DataFrame format matching the model's structure
-        input_df = pd.DataFrame([input_data])
-        
-        # Ensure columns are in the exact order the model expects
-        input_df = input_df[feature_names]
-        
-        # Generate prediction
-        prediction = model.predict(input_df)[0]
-        
-        # Guard against edge-case negative numbers from regression models
-        predicted_tickets = max(0, int(np.round(prediction)))
-        
-        st.markdown("---")
-        st.subheader("📊 Prediction Result")
-        st.metric(label="Predicted Tickets Sold", value=f"{predicted_tickets} Tickets")
-        
-        # Contextual logic based on theater capacity input
-        capacity_key = [c for c in feature_names if 'capacity' in c.lower()]
-        if capacity_key:
-            cap = input_data[capacity_key[0]]
-            fill_rate = (predicted_tickets / cap) * 100
-            st.info(f"Estimated Theater Occupancy Rate: **{min(fill_rate, 100.0):.1f}%**")
+# --- SECTION 3: Display Results ---
+if submit_button:
+    # Convert user inputs into a DataFrame format matching the model's structure
+    input_df = pd.DataFrame([input_data])
+    
+    # Ensure columns are in the exact order the model expects
+    input_df = input_df[feature_names]
+    
+    # Generate prediction
+    prediction = model.predict(input_df)[0]
+    
+    # Guard against edge-case negative numbers from regression models
+    predicted_tickets = max(0, int(np.round(prediction)))
+    
+    st.subheader("📊 Prediction Result")
+    st.metric(label="Predicted Tickets Sold", value=f"{predicted_tickets} Tickets")
+    
+    # Contextual logic based on theater capacity input to calculate occupency percentage (occu_perc)
+    capacity_key = [c for c in feature_names if 'capacity' in c.lower()]
+    if capacity_key:
+        cap = input_data[capacity_key[0]]
+        fill_rate = (predicted_tickets / cap) * 100
+        st.info(f"Estimated Theater Occupancy Rate (`occu_perc`): **{min(fill_rate, 100.0):.1f}%**")
