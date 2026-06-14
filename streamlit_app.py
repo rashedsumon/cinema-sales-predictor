@@ -28,15 +28,7 @@ except Exception as e:
     st.error(f"Failed to load dataset/model. Error: {e}")
     st.stop()
 
-# --- SECTION 1: Performance Metrics (Full Width Top) ---
-st.markdown("---")
-st.header("📈 Model Performance Metrics")
-metric_cols = st.columns(2)
-with metric_cols[0]:
-    st.metric(label="R² Accuracy Score", value=f"{metrics['R2']:.2f}")
-with metric_cols[1]:
-    st.metric(label="Mean Absolute Error (MAE)", value=f"{metrics['MAE']:.1f} tickets")
-st.caption("Historical performance measured against the test split.")
+
 
 # --- SECTION 2: Predict New Screening Sales (Full Width Main Column) ---
 st.markdown("---")
