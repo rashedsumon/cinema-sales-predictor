@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"  # Changed to centered for a clean 1-column layout
 )
 
-st.title("🎬 AI Cinema Ticket Sales Predictor")
+st.title("🎬 Cinema Ticket Sales Predicton")
 st.write("This application uses a LightGBM ML model to predict the number of tickets likely to be sold for a movie screening.")
 
 # Cache the model training so it doesn't run every time a user changes an input slider
